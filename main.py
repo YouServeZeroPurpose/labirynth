@@ -41,9 +41,35 @@ class Player(Sprite):
         self.hitbox.x = max(0, min(self.hitbox.x, window_width - self.hitbox.width))
         self.hitbox.y = max(0, min(self.hitbox.y, window_height - self.hitbox.height))
 
+class Enemy(Sprite):
+    def __init__(self, x, y, w, h, image_right, image_left, speed, x2, direction = True):
+        super().__init__(x, y, w, h, image_right)
+        self.image_right = self.image
+        self.image_left = pygame.transform.scale(image_left, (w, h))
+        self.speed = speed
+        self.x1 = x
+        self.x2 = x2
+        self.direction = direction
+
+    def move(self):
+        if self.hitbox.x >= self.x2:
+            self.hitbox.x = self.x2
+            self.direction = False
+            self.image = self.image_left
+        elif self.hitbox.x <= self.x1:
+            self.hitbox.x = self.x1
+            self.direction = True
+            self.image = self.image_right
+        if self.direction:
+            self.hitbox.x += self.speed
+        else:
+            self.hitbox.x -= self.speed
+
 player_img = pygame.image.load('sprite1.png')
 block_img = pygame.image.load('wall.png')
 gold_img = pygame.image.load('treasure.png')
+enemy_img = pygame.image.load('cyborg.png')
+enemy_img_left = pygame.transform.flip(enemy_img, True, False)
 
 block_size = 20
 blocks = []
@@ -78,6 +104,7 @@ kick_sound = pygame.mixer.Sound('kick.ogg')
 win_sound = pygame.mixer.Sound('win.ogg')
 
 player = Player(20, 260, 30, 30, player_img, 3)
+enemy = Enemy(60, 300, 30, 30, enemy_img, enemy_img_left, 3, 700)
 
 finish = False
 win_state = False
@@ -93,6 +120,8 @@ while game:
     if not finish:
         player.move(pygame.K_a, pygame.K_d, pygame.K_s, pygame.K_w)
         player.draw()
+        enemy.draw()
+        enemy.move()
 
         for b in blocks:
             if player.hitbox.colliderect(b.hitbox):
@@ -120,6 +149,7 @@ while game:
             game = False
         if event.type == pygame.KEYDOWN and event.key == pygame.K_SPACE and finish:
             player = Player(20, 260, 30, 30, player_img, 3)
+            enemy = Enemy(60, 300, 30, 30, enemy_img, enemy_img_left, 3, 700)
             finish = False
 
     pygame.display.update()
